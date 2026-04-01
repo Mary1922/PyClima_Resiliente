@@ -1,4 +1,20 @@
-venv/
+# --- Python ---
 __pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# --- Entornos de Conda (por si acaso) ---
+.conda/
+.anaconda/
+
+# --- Editores (VS Code) ---
 .vscode/
-*.pyc
+.history/
+
+# --- Sistema Operativo (Linux/Ubuntu) ---
+.DS_Store
+.directory
+*~
+*.swp
