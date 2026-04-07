@@ -19,7 +19,6 @@ if os.name == 'nt':
 # Importar módulos del proyecto
 import persistencia
 from validaciones import (
-    SistemaAlertas, 
     validar_input_numerico, 
     validar_input_si_no,
     validar_zona,
