@@ -15,17 +15,6 @@ def obtener_distritos_permitidos():
             return configuración.get("distritos_oficiales", [])
     except Exception:
         return []
-    
-def obtener_umbrales_alerta():
-    if not os.path.exists(CONFIGURACIÓN_DE_ARCHIVO):
-        return {"temp_max_naranja": 35.0, "temp_max_roja": 40.0, "viento_max": 40, "humedad_min": 15}
-    
-    try:
-        with open(CONFIGURACIÓN_DE_ARCHIVO, 'r', encoding='utf-8') as F:
-            configuración = json.load(F)
-            return configuración.get("umbrales", {})
-    except Exception:
-        return {"temp_max_naranja": 35.0, "temp_max_roja": 40.0, "viento_max": 40, "humedad_min": 15}
 
 def leer_histórico():
     if not os.path.exists(ARCHIVO_JSON):
