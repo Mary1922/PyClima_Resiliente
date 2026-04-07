@@ -21,5 +21,11 @@
         "Vicálvaro",
         "Villa de Vallecas",
         "Villaverde"
-    ]
+    ],
+        "umbrales": {
+        "temp_max_naranja": 35.0,
+        "temp_max_roja": 40.0,
+        "viento_max": 40,
+        "humedad_min": 15
+    }
 }

@@ -15,8 +15,19 @@ def obtener_distritos_permitidos():
             return configuración.get("distritos_oficiales", [])
     except Exception:
         return []
+    
+def obtener_umbrales_alerta():
+    if not os.path.exists(CONFIGURACIÓN_DE_ARCHIVO):
+        return {"temp_max_naranja": 35.0, "temp_max_roja": 40.0, "viento_max": 40, "humedad_min": 15}
+    
+    try:
+        with open(CONFIGURACIÓN_DE_ARCHIVO, 'r', encoding='utf-8') as F:
+            configuración = json.load(F)
+            return configuración.get("umbrales", {})
+    except Exception:
+        return {"temp_max_naranja": 35.0, "temp_max_roja": 40.0, "viento_max": 40, "humedad_min": 15}
 
-def leer_histórico():
+def leer_historico():
     if not os.path.exists(ARCHIVO_JSON):
         return []
     try:
@@ -34,8 +45,8 @@ def registrar_nuevo_dato(nuevo_registro):
         print(f"ERROR: '{distrito_limpio}' no es un distrito oficial de Madrid.")
         return False
 
-    histórico = leer_histórico()
-    for entrada in histórico:
+    historico = leer_historico()
+    for entrada in historico:
         if entrada["fecha"] == nuevo_registro["fecha"]:
             if entrada["distrito"] == distrito_limpio:
                 print(f"ERROR: Ya existe un registro para {distrito_limpio} en la fecha {nuevo_registro['fecha']}")
@@ -43,15 +54,15 @@ def registrar_nuevo_dato(nuevo_registro):
                 return False
 
     print(f"\nDatos a registrar: {distrito_limpio} | {nuevo_registro['fecha']} | {nuevo_registro['temperatura']}°C")
-    confirmar = input(f"¿Confirmas guardar estos datos en el JSON? (Escribe '{CONFIRMACIÓN_REQUERIDA}'): ") # 'aportar' -> 'input'
+    confirmar = input(f"¿Confirmas guardar estos datos en el JSON? (Escribe '{CONFIRMACIÓN_REQUERIDA}'): ")
 
     if confirmar.lower() == CONFIRMACIÓN_REQUERIDA:
         nuevo_registro["distrito"] = distrito_limpio
-        histórico.append(nuevo_registro)
+        historico.append(nuevo_registro)
         
         try:
             with open(ARCHIVO_JSON, 'w', encoding='utf-8') as F:
-                json.dump(histórico, F, indent=4, ensure_ascii=False)
+                json.dump(historico, F, indent=4, ensure_ascii=False)
             print("Registro guardado exitosamente.")
             return True
         except Exception as mi:
@@ -61,10 +72,10 @@ def registrar_nuevo_dato(nuevo_registro):
         print("Operación cancelada. No se han realizado cambios.")
         return False
 
-def actualizar_base_de_datos(histórico_modificado):
+def actualizar_base_de_datos(historico_modificado):
     try:
         with open(ARCHIVO_JSON, 'w', encoding='utf-8') as F:
-            json.dump(histórico_modificado, F, indent=4, ensure_ascii=False)
+            json.dump(historico_modificado, F, indent=4, ensure_ascii=False)
         return True
     except Exception as mi:
         print(f"Error al actualizar la base de datos: {mi}")
