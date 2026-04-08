@@ -5,9 +5,10 @@ Interfaz intuitiva y robusta para interacción del usuario
 
 import json
 import os
+import validaciones
+import alertas
+import persistencia
 from datetime import datetime
-from pathlib import Path
-
 
 class InterfazPyClima:
     """Interfaz intuitiva y robusta del Sistema PyClima"""
@@ -18,115 +19,41 @@ class InterfazPyClima:
         self.zonas_validas = self._obtener_zonas()
         
     def _cargar_datos(self):
-        """Carga datos existentes desde JSON"""
-        if os.path.exists(self.ruta_datos):
-            try:
-                with open(self.ruta_datos, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except (json.JSONDecodeError, IOError):
-                return {}
-        return {}
-    
-    def _guardar_datos(self):
-        """Guarda datos en formato JSON"""
-        try:
-            with open(self.ruta_datos, 'w', encoding='utf-8') as f:
-                json.dump(self.datos, f, ensure_ascii=False, indent=2)
-            return True
-        except IOError as e:
-            print(f"❌ Error al guardar datos: {e}")
-            return False
+        """Carga datos usando el módulo oficial de persistencia"""
+        return persistencia.leer_historico()
     
     def _obtener_zonas(self):
-        """Obtiene lista de zonas disponibles"""
+        """Obtiene lista de zonas disponibles iterando sobre una LISTA"""
         zonas = set()
-        for registros in self.datos.values():
-            if isinstance(registros, list):
-                for reg in registros:
-                    if "distrito" in reg:
-                        zonas.add(reg["distrito"])
+        for reg in self.datos:
+            if "distrito" in reg:
+                zonas.add(reg["distrito"])
         return sorted(list(zonas)) if zonas else []
     
-    def _validar_fecha(self, fecha_str):
-        """Valida formato de fecha DD/MM/AAAA"""
-        try:
-            fecha = datetime.strptime(fecha_str, "%d/%m/%Y").date()
-            return fecha, None
-        except ValueError:
-            return None, "❌ Formato de fecha inválido. Use DD/MM/AAAA"
-    
-    def _validar_temperatura(self, temp):
-        """Valida rango de temperatura (-50°C a 60°C)"""
-        try:
-            valor = float(temp)
-            if -50 <= valor <= 60:
-                return valor, None
-            return None, "❌ Temperatura fuera de rango (-50°C a 60°C)"
-        except ValueError:
-            return None, "❌ La temperatura debe ser un número decimal"
-    
-    def _validar_humedad(self, humedad):
-        """Valida rango de humedad (0% a 100%)"""
-        try:
-            valor = float(humedad)
-            if 0 <= valor <= 100:
-                return valor, None
-            return None, "❌ Humedad fuera de rango (0% a 100%)"
-        except ValueError:
-            return None, "❌ La humedad debe ser un número decimal"
-    
-    def _validar_viento(self, viento):
-        """Valida velocidad del viento (0 a 200 km/h)"""
-        try:
-            valor = int(viento)
-            if 0 <= valor <= 200:
-                return valor, None
-            return None, "❌ Velocidad de viento fuera de rango (0-200 km/h)"
-        except ValueError:
-            return None, "❌ La velocidad debe ser un número entero"
-    
     def _validar_duplicado(self, fecha, distrito):
-        """Verifica si existe registro duplicado"""
-        key_fecha = str(fecha)
-        if key_fecha in self.datos:
-            for reg in self.datos[key_fecha]:
-                if reg.get("distrito", "").lower() == distrito.lower():
-                    return True
+        """Verifica si existe registro duplicado iterando sobre la LISTA"""
+        for reg in self.datos:
+            if reg.get("fecha") == str(fecha) and reg.get("distrito", "").lower() == distrito.lower():
+                return True
         return False
     
     def _analizar_alertas(self, temperatura, humedad, viento):
-        """Analiza y retorna alertas climáticas"""
+        """Analiza y retorna alertas climáticas locales para visualización"""
         alertas = []
-        
-        # Alerta de Calor
-        if temperatura >= 35:
-            alertas.append(f"🔴 ALERTA DE CALOR: {temperatura}°C - Peligro extremo")
-        elif temperatura >= 30:
-            alertas.append(f"🟡 ADVERTENCIA DE CALOR: {temperatura}°C")
-        
-        # Alerta de Viento
-        if viento >= 60:
-            alertas.append(f"🔴 ALERTA DE VIENTO: {viento} km/h - Peligro extremo")
-        elif viento >= 40:
-            alertas.append(f"🟡 ADVERTENCIA DE VIENTO: {viento} km/h")
-        
-        # Alerta de Lluvia (Humedad extrema sugiere lluvia)
-        if humedad >= 90:
-            alertas.append(f"🔴 ALERTA DE LLUVIA: Humedad {humedad}% - Lluvia probable")
-        elif humedad >= 75:
-            alertas.append(f"🟡 ADVERTENCIA DE LLUVIA: Humedad {humedad}%")
-        
+        if temperatura >= 35: alertas.append(f"🔴 ALERTA DE CALOR: {temperatura}°C")
+        elif temperatura >= 30: alertas.append(f"🟡 ADVERTENCIA DE CALOR: {temperatura}°C")
+        if viento >= 60: alertas.append(f"🔴 ALERTA DE VIENTO: {viento} km/h")
+        elif viento >= 40: alertas.append(f"🟡 ADVERTENCIA DE VIENTO: {viento} km/h")
+        if humedad >= 90: alertas.append(f"🔴 ALERTA DE LLUVIA: Humedad {humedad}%")
         return alertas
     
     def _mostrar_encabezado(self, titulo):
-        """Muestra encabezado formateado"""
         print("\n" + "="*50)
         print(f"  {titulo}")
         print("="*50)
     
     def _mostrar_separador(self):
-        """Muestra una línea separadora"""
-        print("-"*50)
+        print("-" * 50)
     
     def menu_principal(self):
         """Menú principal del sistema"""
@@ -135,7 +62,7 @@ class InterfazPyClima:
             print("1. 📝 Registrar Datos Climáticos")
             print("2. 📊 Consultar Datos (Por Zona)")
             print("3. 📈 Ver Histórico (Todas las Zonas)")
-            print("4. � Alertas Activas")
+            print("4. 🚨 Alertas Activas")
             print("5. 🚪 Salir")
             self._mostrar_separador()
             
@@ -159,109 +86,64 @@ class InterfazPyClima:
     def registrar_datos(self):
         """Flujo completo de registro con validaciones"""
         self._mostrar_encabezado("📝 REGISTRAR NUEVOS DATOS CLIMÁTICOS")
+        self.datos = self._cargar_datos() # Refrescamos por si acaso
         
         while True:
             try:
-                # 1️⃣ Validación de Fecha
                 print("\n[1/5] FECHA DEL REGISTRO")
-                fecha_input = input("📅 Ingrese la fecha (DD/MM/AAAA): ").strip()
-                fecha, error = self._validar_fecha(fecha_input)
-                if error:
-                    print(error)
-                    continue
+                fecha = validaciones.validar_fecha()
                 
-                # 2️⃣ Validación de Distrito (Zona)
                 print("\n[2/5] ZONA/DISTRITO")
-                distrito = input("📍 Ingrese el distrito/zona: ").strip()
-                if not distrito or len(distrito) < 2:
-                    print("❌ El distrito debe tener al menos 2 caracteres")
-                    continue
+                distrito = validaciones.validar_zona()
+                if not distrito: return
                 
-                # Verificar duplicado
                 if self._validar_duplicado(fecha, distrito):
                     print(f"⚠️  Ya existe un registro para {distrito} en {fecha}")
-                    reintentar = input("¿Desea ingresar datos nuevamente? (s/n): ").lower()
-                    if reintentar != 's':
-                        print("❌ Operación cancelada")
-                        return
+                    if input("¿Desea ingresar datos nuevamente? (s/n): ").lower() != 's': return
                     continue
                 
-                # 3️⃣ Validación de Temperatura
                 print("\n[3/5] TEMPERATURA")
-                print("   Rango válido: -50°C a 60°C")
-                temp_input = input("🌡️  Ingrese la temperatura (°C): ").strip()
-                temperatura, error = self._validar_temperatura(temp_input)
-                if error:
-                    print(error)
-                    continue
+                temperatura = validaciones.validar_temperatura()
                 
-                # 4️⃣ Validación de Humedad
                 print("\n[4/5] HUMEDAD")
-                print("   Rango válido: 0% a 100%")
-                humedad_input = input("💧 Ingrese la humedad relativa (%): ").strip()
-                humedad, error = self._validar_humedad(humedad_input)
-                if error:
-                    print(error)
-                    continue
+                humedad = validaciones.validar_humedad()
                 
-                # 5️⃣ Validación de Viento
                 print("\n[5/5] VELOCIDAD DEL VIENTO")
-                print("   Rango válido: 0 a 200 km/h")
-                viento_input = input("💨 Ingrese la velocidad del viento (km/h): ").strip()
-                viento, error = self._validar_viento(viento_input)
-                if error:
-                    print(error)
-                    continue
+                viento = validaciones.validar_viento()
                 
-                # ✅ Todos los datos válidos
                 print("\n" + "="*50)
                 print("✅ DATOS VALIDADOS EXITOSAMENTE")
                 print("="*50)
                 
-                # 🔍 Analizar Alertas
-                alertas = self._analizar_alertas(temperatura, humedad, viento)
+                umbrales = persistencia.obtener_umbrales_alerta()
+                datos_registro = {"temperatura": temperatura, "humedad": humedad, "viento": viento}
+                alertas_activas = alertas.evaluar_alertas(datos_registro, umbrales)
                 
-                # 💾 Guardar Datos
-                key_fecha = str(fecha)
-                if key_fecha not in self.datos:
-                    self.datos[key_fecha] = []
-                
-                registro = {
+                nuevo_registro = {
+                    "fecha": fecha,
                     "distrito": distrito,
-                    "temperatura": temperatura,
+                    "temperatura": temperatura, # Formato de persistencia
+                    "temp": temperatura,        # Formato del JSON original
                     "humedad": humedad,
                     "viento": viento,
-                    "timestamp": datetime.now().isoformat()
+                    "lluvia": 0.0,
+                    "alertas": alertas_activas,
+                    "registrado_por": "100375",
+                    "editado": False
                 }
                 
-                self.datos[key_fecha].append(registro)
+                exito = persistencia.registrar_nuevo_dato(nuevo_registro)
                 
-                if self._guardar_datos():
-                    print(f"\n✅ Registro guardado exitosamente")
-                    print(f"   📍 Distrito: {distrito}")
-                    print(f"   📅 Fecha: {fecha}")
-                    print(f"   🌡️  Temperatura: {temperatura}°C")
-                    print(f"   💧 Humedad: {humedad}%")
-                    print(f"   💨 Viento: {viento} km/h")
-                    
-                    # Mostrar alertas si las hay
-                    if alertas:
-                        print("\n🚨 ALERTAS DETECTADAS:")
-                        for alerta in alertas:
-                            print(f"   {alerta}")
+                if exito:
+                    if alertas_activas:
+                        print("\n🚨 ALERTAS OFICIALES DETECTADAS:")
+                        for alerta in alertas_activas: print(f"   {alerta}")
                     else:
                         print("\n   ✅ Niveles climáticos normales")
-                    
+                        
                     self._mostrar_separador()
-                    print("💾 Datos guardados en JSON")
-                    
-                    continuar = input("\n¿Registrar otro dato? (s/n): ").lower()
-                    if continuar != 's':
-                        print("↩️  Volviendo al menú principal...")
-                        return
-                    print("\n")
+                    if input("\n¿Registrar otro dato? (s/n): ").lower() != 's': return
                 else:
-                    print("❌ Error al guardar los datos")
                     return
                     
             except KeyboardInterrupt:
@@ -269,30 +151,21 @@ class InterfazPyClima:
                 return
             except Exception as e:
                 print(f"❌ Error inesperado: {e}")
-                reintentar = input("¿Desea ingresar los datos nuevamente? (s/n): ").lower()
-                if reintentar != 's':
-                    return
+                if input("¿Desea ingresar los datos nuevamente? (s/n): ").lower() != 's': return
     
     def consultar_datos(self):
         """Consulta datos por zona"""
         self._mostrar_encabezado("📊 CONSULTAR DATOS POR ZONA")
+        self.datos = self._cargar_datos() # Refrescar
         
         if not self.datos:
             print("❌ No hay datos registrados")
             input("Presione Enter para continuar...")
             return
-        
-        # Actualizar zonas
+            
         self.zonas_validas = self._obtener_zonas()
-        
-        if not self.zonas_validas:
-            print("❌ No hay zonas disponibles")
-            input("Presione Enter para continuar...")
-            return
-        
         print("\n📍 Zonas disponibles:")
-        for i, zona in enumerate(self.zonas_validas, 1):
-            print(f"   {i}. {zona}")
+        for i, zona in enumerate(self.zonas_validas, 1): print(f"   {i}. {zona}")
         
         try:
             seleccion = int(input("\nSeleccione una zona (número): ")) - 1
@@ -307,95 +180,72 @@ class InterfazPyClima:
         input("\nPresione Enter para volver al menú...")
     
     def _mostrar_datos_zona(self, zona):
-        """Muestra todos los datos de una zona"""
+        """Muestra todos los datos de una zona iterando sobre la LISTA"""
         print(f"\n📊 Datos de: {zona}")
         self._mostrar_separador()
         
         encontrados = 0
-        for fecha, registros in sorted(self.datos.items()):
-            for reg in registros:
-                if reg.get("distrito", "").lower() == zona.lower():
-                    encontrados += 1
-                    print(f"📅 {fecha}")
-                    print(f"   🌡️  Temperatura: {reg['temperatura']}°C")
-                    print(f"   💧 Humedad: {reg['humedad']}%")
-                    print(f"   💨 Viento: {reg['viento']} km/h")
-                    
-                    # Analizar alertas para este registro
-                    alertas = self._analizar_alertas(
-                        reg['temperatura'], 
-                        reg['humedad'], 
-                        reg['viento']
-                    )
-                    if alertas:
-                        for alerta in alertas:
-                            print(f"   {alerta}")
-                    print()
+        for reg in self.datos:
+            if reg.get("distrito", "").lower() == zona.lower():
+                encontrados += 1
+                temp = reg.get('temp', reg.get('temperatura', 0))
+                print(f"📅 {reg['fecha']}")
+                print(f"   🌡️  Temperatura: {temp}°C")
+                print(f"   💧 Humedad: {reg['humedad']}%")
+                print(f"   💨 Viento: {reg['viento']} km/h")
+                
+                alertas_locales = self._analizar_alertas(temp, reg['humedad'], reg['viento'])
+                for alerta in alertas_locales: print(f"   {alerta}")
+                print()
         
-        if encontrados == 0:
-            print(f"❌ No hay datos para {zona}")
-        else:
-            print(f"✅ Total de registros: {encontrados}")
+        if encontrados == 0: print(f"❌ No hay datos para {zona}")
+        else: print(f"✅ Total de registros: {encontrados}")
     
     def ver_historico(self):
-        """Muestra histórico completo de todas las zonas"""
+        """Muestra histórico completo"""
         self._mostrar_encabezado("📈 HISTÓRICO COMPLETO DE TODAS LAS ZONAS")
+        self.datos = self._cargar_datos() # Refrescar
         
         if not self.datos:
             print("❌ No hay datos registrados")
             input("Presione Enter para continuar...")
             return
-        
-        total_registros = 0
-        for fecha, registros in sorted(self.datos.items()):
-            print(f"\n📅 Fecha: {fecha}")
-            self._mostrar_separador()
-            for reg in registros:
-                total_registros += 1
-                print(f"   📍 {reg['distrito']}")
-                print(f"      🌡️  T: {reg['temperatura']}°C | 💧 H: {reg['humedad']}% | 💨 V: {reg['viento']} km/h")
-        
+            
         print(f"\n{'='*50}")
-        print(f"✅ Total de registros: {total_registros}")
-        print(f"{'='*50}")
+        for reg in self.datos:
+            temp = reg.get('temp', reg.get('temperatura', 0))
+            print(f"📅 {reg['fecha']} | 📍 {reg['distrito']}")
+            print(f"   🌡️  T: {temp}°C | 💧 H: {reg['humedad']}% | 💨 V: {reg['viento']} km/h")
+            self._mostrar_separador()
         
+        print(f"✅ Total de registros: {len(self.datos)}")
+        print(f"{'='*50}")
         input("\nPresione Enter para volver al menú...")
     
     def mostrar_panel_alertas(self):
-        """Panel de alertas activas - Muestra todas las alertas detectadas"""
+        """Panel de alertas activas iterando sobre la LISTA"""
         self._mostrar_encabezado("🚨 PANEL DE ALERTAS ACTIVAS")
-        
-        hay_alertas = False
+        self.datos = self._cargar_datos() # Refrescar
         alertas_encontradas = []
 
-        # Recorrer todos los registros
-        for fecha, registros in self.datos.items():
-            for registro in registros:
-                # Evaluar alertas del registro
-                alertas = self._analizar_alertas(
-                    registro['temperatura'],
-                    registro['humedad'],
-                    registro['viento']
-                )
-                
-                if alertas:
-                    hay_alertas = True
-                    alertas_encontradas.append({
-                        'zona': registro['distrito'],
-                        'fecha': fecha,
-                        'alertas': alertas
-                    })
+        for reg in self.datos:
+            temp = reg.get('temp', reg.get('temperatura', 0))
+            alertas_locales = self._analizar_alertas(temp, reg['humedad'], reg['viento'])
+            if alertas_locales:
+                alertas_encontradas.append({
+                    'zona': reg['distrito'],
+                    'fecha': reg['fecha'],
+                    'alertas': alertas_locales
+                })
         
-        # Mostrar alertas encontradas
         if alertas_encontradas:
             for item in alertas_encontradas:
                 print(f"\n📍 ZONA: {item['zona']} | FECHA: {item['fecha']}")
                 print("-" * 45)
-                for alerta in item['alertas']:
-                    print(f"  → {alerta}")
+                for alerta in item['alertas']: print(f"  → {alerta}")
         else:
             print("\n✅ No hay alertas activas en ningún distrito.")
-        
+            
         print("\n" + "!"*66)
         if alertas_encontradas:
             total_alertas = sum(len(item['alertas']) for item in alertas_encontradas)
@@ -405,23 +255,7 @@ class InterfazPyClima:
         input("\nPresione Enter para volver al menú...")
     
     def salir(self):
-        """Cierre limpio del sistema"""
         self._mostrar_encabezado("🚪 CERRANDO SISTEMA")
         print("\n✅ Todos los datos han sido guardados correctamente")
         print("🌍 ¡Gracias por usar PyClima Resiliente!")
         print("👋 ¡Hasta pronto!\n")
-
-
-def main():
-    """Función principal para ejecutar la interfaz"""
-    try:
-        interfaz = InterfazPyClima("datos_clima.json")
-        interfaz.menu_principal()
-    except KeyboardInterrupt:
-        print("\n\n❌ Aplicación interrumpida por el usuario")
-    except Exception as e:
-        print(f"\n❌ Error crítico: {e}")
-
-
-if __name__ == "__main__":
-    main()
