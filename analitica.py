@@ -33,6 +33,7 @@ def generar_reporte_visual_pro():
     plt.title("ESTADO TÉRMICO HISTÓRICO POR DISTRITO", fontweight='bold')
     plt.ylabel("Temperatura (°C)")
     plt.legend()
+    plt.xticks(rotation=45, ha='right')
     
     plt.tight_layout()
     plt.show()
