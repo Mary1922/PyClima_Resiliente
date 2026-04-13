@@ -95,26 +95,32 @@ def validar_fecha():
     """
     Solicita y valida una fecha.
     Formato estricto: AAAA-MM-DD.
-    
-    DEV 1: Llama a esta función sin parámetros.
-    Retorna: Un string con la fecha correcta (ej. '2026-04-06').
+    Solo permite fechas actuales o pasadas (no futuras).
     """
     while True:
         entrada = input("Introduce la fecha (formato AAAA-MM-DD, ej: 2026-04-06) [o 'c' para cancelar]: ").strip()
         if entrada.lower() == 'c': raise KeyboardInterrupt
-        
+
         if not entrada:
             print("❌ Error: La fecha no puede estar vacía.")
-            continue 
-            
+            continue
+
         try:
-            # Comprueba matemáticamente si la fecha existe en el calendario real
-            datetime.strptime(entrada, "%Y-%m-%d")
+            # Comprueba si la fecha existe en el calendario real
+            fecha_ingresada = datetime.strptime(entrada, "%Y-%m-%d")
+            fecha_actual = datetime.now()
+
+            # Valida que no sea una fecha futura
+            if fecha_ingresada > fecha_actual:
+                print(f"❌ Error: No se permiten fechas futuras. La fecha ingresada ({entrada}) es posterior a hoy ({fecha_actual.strftime('%Y-%m-%d')}).")
+                print("🔄 Inténtalo de nuevo.\n")
+                continue
+
             return entrada
-            
+
         except ValueError:
             print("❌ Error: Formato incorrecto o fecha inexistente. Usa AAAA-MM-DD.")
-            
+
         print("🔄 Inténtalo de nuevo.\n")
 
 
