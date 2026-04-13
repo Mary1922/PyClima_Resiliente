@@ -39,7 +39,9 @@ def leer_historico():
 
 def registrar_nuevo_dato(nuevo_registro):
     distritos_oficiales = obtener_distritos_permitidos()
-    distrito_limpio = nuevo_registro["distrito"].strip().title()
+    distrito_ingresado = nuevo_registro["distrito"].strip()
+    mapa_distritos = {distrito.lower(): distrito for distrito in distritos_oficiales}
+    distrito_limpio = mapa_distritos.get(distrito_ingresado.lower(), distrito_ingresado)
 
     if distritos_oficiales and distrito_limpio not in distritos_oficiales:
         print(f"ERROR: '{distrito_limpio}' no es un distrito oficial de Madrid.")
@@ -48,7 +50,7 @@ def registrar_nuevo_dato(nuevo_registro):
     historico = leer_historico()
     for entrada in historico:
         if entrada["fecha"] == nuevo_registro["fecha"]:
-            if entrada["distrito"] == distrito_limpio:
+            if entrada["distrito"].lower() == distrito_limpio.lower():
                 print(f"ERROR: Ya existe un registro para {distrito_limpio} en la fecha {nuevo_registro['fecha']}")
                 print("No se permiten duplicados en el histórico.")
                 return False
