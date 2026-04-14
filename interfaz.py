@@ -120,7 +120,7 @@ class InterfazPyClima:
                 print("="*50)
                 
                 umbrales = persistencia.obtener_umbrales_alerta()
-                datos_registro = {"temperatura": temperatura, "humedad": humedad, "viento": viento}
+                datos_registro = {"temperatura": temperatura, "humedad": humedad, "viento": viento, "lluvia": lluvia}
                 alertas_activas = alertas.evaluar_alertas(datos_registro, umbrales)
                 
                 # --- PASO 1: MOSTRAR ALERTAS ANTES DE GUARDAR ---
@@ -357,7 +357,7 @@ class InterfazPyClima:
                     return
 
             umbrales = persistencia.obtener_umbrales_alerta()
-            datos_registro = {"temperatura": temp_final, "humedad": humedad_final, "viento": viento_final}
+            datos_registro = {"temperatura": temp_final, "humedad": humedad_final, "viento": viento_final, "lluvia": lluvia_final}
             alertas_activas = alertas.evaluar_alertas(datos_registro, umbrales)
 
             self.datos[indice_real]["distrito"] = distrito_final
@@ -438,7 +438,11 @@ class InterfazPyClima:
                 
                 print(f"📅 {reg['fecha']} | 📍 {reg.get('distrito', 'Desconocida')}")
                 print(f"   🌡️  T: {temp}°C | 💧 H: {reg.get('humedad', 0)}% | 💨 V: {reg.get('viento', 0)} km/h")
-                
+
+                alertas_locales = self._analizar_alertas(temp, reg.get('humedad', 0), reg.get('viento', 0), reg.get('lluvia', 0))
+                for alerta in alertas_locales:
+                    print(f"   {alerta}")
+
                 # Imprimimos el autor
                 print(f"   {nombre_operario}")
                 # Avisamos si el registro sufrió una corrección
