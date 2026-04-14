@@ -187,13 +187,14 @@ def validar_acceso():
     """
     Valida que el empleado exista en empleados.json.
     Devuelve el número de empleado si es válido, None si no.
-    
-    USO: 
-    - DEV 1 (auth.py): num_empleado = validar_acceso()
+    PARA REGISTRO DE NUEVO USUARIO.
+
+    USO:
+    - auth.py (registrar_usuario): num_empleado = validar_acceso()
     """
     max_intentos = 3
     intento = 0
-    
+
     try:
         with open("empleados.json", "r", encoding='utf-8') as f:
             lista_autorizados = json.load(f)
@@ -203,19 +204,19 @@ def validar_acceso():
     except json.JSONDecodeError:
         print("❌ Error crítico: El archivo 'empleados.json' está corrupto.")
         return None
-    
+
     while intento < max_intentos:
         try:
             numero_ingresado = input(f"Introduce tu número de empleado [{intento + 1}/{max_intentos}] [o 'c' para cancelar]: ").strip()
-            
+
             if numero_ingresado.lower() == 'c':
                 raise KeyboardInterrupt
-            
+
             if not numero_ingresado:
                 print("❌ Error: El número de empleado no puede estar vacío.")
                 intento += 1
                 continue
-            
+
             # Búsqueda exacta en la lista
             if numero_ingresado in lista_autorizados:
                 print(f"✅ Número de empleado {numero_ingresado} validado correctamente.")
@@ -251,14 +252,80 @@ def validar_duplicado(nueva_fecha, nueva_zona, historial):
             
     return False
 
-# --- ZONA DE PRUEBAS TEMPORAL ---
-# Este bloque solo se ejecutará si lanzas este archivo directamente.
-# Si el DEV 1 importa tus funciones en su menu.py, esto no le molestará.
-if __name__ == "__main__":
-    print("\n--- 🧪 TEST DE VALIDACIÓN DE ZONA ---")
-    print("Vamos a probar la conexión con config.json y el autocompletado.")
+
+def validar_usuario_sesion():
+    """
+    Valida que el usuario exista en usuarios.json.
+    Devuelve el número de empleado si es válido, None si no.
+    PARA INICIAR SESIÓN SOLAMENTE.
+
+    USO:
+    - auth.py (iniciar_sesion): num_empleado = validar_usuario_sesion()
+    """
+    max_intentos = 3
+    intento = 0
+
+    try:
+        with open("usuarios.json", "r", encoding='utf-8') as f:
+            usuarios_registrados = json.load(f)
+            numeros_usuarios = [u.get("num_empleado") for u in usuarios_registrados]
+    except FileNotFoundError:
+        print("❌ Error crítico: El archivo 'usuarios.json' no existe.")
+        return None
+    except json.JSONDecodeError:
+        print("❌ Error crítico: El archivo 'usuarios.json' está corrupto.")
+        return None
+
+    while intento < max_intentos:
+        try:
+            numero_ingresado = input(f"Introduce tu número de empleado [{intento + 1}/{max_intentos}] [o 'c' para cancelar]: ").strip()
+
+            if numero_ingresado.lower() == 'c':
+                raise KeyboardInterrupt
+
+            if not numero_ingresado:
+                print("❌ Error: El número de empleado no puede estar vacío.")
+                intento += 1
+                continue
+
+            # Búsqueda exacta en usuarios registrados
+            if numero_ingresado in numeros_usuarios:
+                print(f"✅ Usuario {numero_ingresado} encontrado.")
+                return numero_ingresado
+            else:
+                intento += 1
+                intentos_restantes = max_intentos - intento
+                if intentos_restantes > 0:
+                    print(f"❌ Este usuario no está registrado. Intentos restantes: {intentos_restantes}")
+                else:
+                    print("❌ Has agotado los intentos.")
+        except KeyboardInterrupt:
+            raise
+
+    return None
+
+def validar_lluvia():
+    """
+    Solicita y valida la cantidad de lluvia (precipitaciones).
+    Rango permitido: 0 a 500 mm.
     
-    resultado_zona = validar_zona()
-    
-    if resultado_zona:
-        print(f"\n✅ ÉXITO: El sistema ha guardado la zona oficial -> '{resultado_zona}'")
+    DEV 1 / DEV 2: Llama a esta función sin parámetros.
+    Retorna: Un número float (ej. 15.5).
+    """
+    while True:
+        try:
+            entrada = input("Introduce la cantidad de lluvia (0 a 500 mm) [o 'c' para cancelar]: ").strip()
+            if entrada.lower() == 'c': raise KeyboardInterrupt
+            
+            lluvia = float(entrada)
+            
+            # La lluvia no puede ser negativa, y ponemos un tope lógico de 500mm
+            if 0 <= lluvia <= 500:
+                return lluvia  
+            else:
+                print(f"❌ Error: {lluvia} mm está fuera del rango lógico (0 a 500).")
+        
+        except ValueError:
+            print("❌ Error: La cantidad de lluvia debe ser un valor numérico (ejemplo: 12.5).")
+            
+        print("🔄 Inténtalo de nuevo.\n")
