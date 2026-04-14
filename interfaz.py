@@ -91,10 +91,10 @@ class InterfazPyClima:
         
         while True:
             try:
-                print("\n[1/5] FECHA DEL REGISTRO")
+                print("\n[1/6] FECHA DEL REGISTRO")
                 fecha = validaciones.validar_fecha()
                 
-                print("\n[2/5] ZONA/DISTRITO")
+                print("\n[2/6] ZONA/DISTRITO")
                 distrito = validaciones.validar_zona()
                 if not distrito: return
                 
@@ -103,15 +103,18 @@ class InterfazPyClima:
                     if input("¿Desea ingresar datos nuevamente? (s/n): ").lower() != 's': return
                     continue
                 
-                print("\n[3/5] TEMPERATURA")
+                print("\n[3/6] TEMPERATURA")
                 temperatura = validaciones.validar_temperatura()
                 
-                print("\n[4/5] HUMEDAD")
+                print("\n[4/6] HUMEDAD")
                 humedad = validaciones.validar_humedad()
                 
-                print("\n[5/5] VELOCIDAD DEL VIENTO")
+                print("\n[5/6] VELOCIDAD DEL VIENTO")
                 viento = validaciones.validar_viento()
-                
+
+                print("\n[6/6] PRECIPITACIONES (LLUVIA)")
+                lluvia = validaciones.validar_lluvia()
+
                 print("\n" + "="*50)
                 print("✅ DATOS VALIDADOS EXITOSAMENTE")
                 print("="*50)
