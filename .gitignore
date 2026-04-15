@@ -10,7 +10,6 @@ dist/
 __pycache__/
 .pytest_cache/
 *.py[cod]
-*.py[cod]
 *$py.class
 *.so
 .Python
@@ -20,3 +19,11 @@ __pycache__/
 Thumbs.db
 .vscode/
 .idea/
+
+# --- VARIABLES DE ENTORNO ---
+.env
+
+# --- BACKUPS Y TEMPORALES ---
+*.bak
+*.tmp
+*.swp
