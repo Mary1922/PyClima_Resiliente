@@ -14,33 +14,34 @@ from datetime import datetime
 
 class InterfazPyClima:
     
+    # Constructor: Inicializa la interfaz cargando datos y configurando usuario actual
     def __init__(self, ruta_datos="datos_clima.json", usuario_actual=None):
         self.ruta_datos = ruta_datos
         self.datos = self._cargar_datos()
         self.zonas_validas = self._obtener_zonas()
-        self.usuario_actual = usuario_actual  # Guardamos la identidad del operario
+        self.usuario_actual = usuario_actual
         
+    # Carga el histórico completo desde la persistencia
     def _cargar_datos(self):
-        """Carga datos usando el módulo oficial de persistencia"""
         return persistencia.leer_historico()
     
+    # Extrae lista única de distritos del histórico
     def _obtener_zonas(self):
-        """Obtiene lista de zonas disponibles iterando sobre una LISTA"""
         zonas = set()
         for reg in self.datos:
             if "distrito" in reg:
                 zonas.add(reg["distrito"])
         return sorted(list(zonas)) if zonas else []
     
+    # Verifica si ya existe un registro con la misma fecha y distrito
     def _validar_duplicado(self, fecha, distrito):
-        """Verifica si existe registro duplicado iterando sobre la LISTA"""
         for reg in self.datos:
             if reg.get("fecha") == str(fecha) and reg.get("distrito", "").lower() == distrito.lower():
                 return True
         return False
     
+    # Evalúa alertas climáticas usando los umbrales del sistema
     def _analizar_alertas(self, temperatura, humedad, viento, lluvia=0):
-        """Usa la lógica oficial de alertas.py para mantener coherencia en toda la interfaz."""
         umbrales = persistencia.obtener_umbrales_alerta()
         datos_registro = {
             "temperatura": temperatura,
@@ -50,19 +51,23 @@ class InterfazPyClima:
         }
         return alertas.evaluar_alertas(datos_registro, umbrales)
     
+    # Imprime encabezado con título formateado
     def _mostrar_encabezado(self, titulo):
         print("\n" + "="*50)
         print(f"  {titulo}")
         print("="*50)
     
+    # Imprime línea separadora visual
     def _mostrar_separador(self):
         print("-" * 50)
 
+    # Normaliza y valida nombre de distrito contra la lista oficial
     def _normalizar_distrito_oficial(self, distrito):
         distritos_oficiales = persistencia.obtener_distritos_permitidos()
         mapa_distritos = {item.lower(): item for item in distritos_oficiales}
         return mapa_distritos.get(distrito.strip().lower())
 
+    # Solicita número editable con validación de rango (mín/máx)
     def _pedir_numero_editable(self, etiqueta, valor_actual, minimo=None, maximo=None):
         while True:
             entrada = input(f"{etiqueta} (actual: {valor_actual}) [Enter para mantener]: ").strip()
@@ -84,34 +89,41 @@ class InterfazPyClima:
 
             return valor
 
+    # Flujo completo: solicita datos climáticos, valida, evalúa alertas y guarda
     def registrar_datos(self):
-        """Flujo completo de registro con validaciones"""
         self._mostrar_encabezado("📝 REGISTRAR NUEVOS DATOS CLIMÁTICOS")
-        self.datos = self._cargar_datos() # Refrescamos por si acaso
+        self.datos = self._cargar_datos()
         
         while True:
             try:
+                # Paso 1: Captura fecha del registro
                 print("\n[1/6] FECHA DEL REGISTRO")
                 fecha = validaciones.validar_fecha()
                 
+                # Paso 2: Captura zona/distrito
                 print("\n[2/6] ZONA/DISTRITO")
                 distrito = validaciones.validar_zona()
                 if not distrito: return
                 
+                # Paso 3: Valida que no exista registro duplicado
                 if self._validar_duplicado(fecha, distrito):
                     print(f"⚠️  Ya existe un registro para {distrito} en {fecha}")
                     if input("¿Desea ingresar datos nuevamente? (s/n): ").lower() != 's': return
                     continue
                 
+                # Paso 4: Captura temperatura
                 print("\n[3/6] TEMPERATURA")
                 temperatura = validaciones.validar_temperatura()
                 
+                # Paso 5: Captura humedad
                 print("\n[4/6] HUMEDAD")
                 humedad = validaciones.validar_humedad()
                 
+                # Paso 6: Captura velocidad del viento
                 print("\n[5/6] VELOCIDAD DEL VIENTO")
                 viento = validaciones.validar_viento()
 
+                # Paso 7: Captura precipitaciones
                 print("\n[6/6] PRECIPITACIONES (LLUVIA)")
                 lluvia = validaciones.validar_lluvia()
 
@@ -162,8 +174,8 @@ class InterfazPyClima:
                 print(f"❌ Error inesperado: {e}")
                 if input("¿Desea ingresar los datos nuevamente? (s/n): ").lower() != 's': return
     
+    # Menú avanzado de consultas con filtros y opciones posteriores
     def consultar_datos(self):
-        """Menú avanzado de consultas con filtros y opciones posteriores"""
         while True:
             self._mostrar_encabezado("📊 CONSULTAR DATOS 📊 ")
             self.datos = self._cargar_datos() # Refrescar datos
@@ -230,7 +242,8 @@ class InterfazPyClima:
                 print(f"   🌡️  Temperatura: {temp}°C")
                 print(f"   💧 Humedad: {reg.get('humedad', 0)}%")
                 print(f"   💨 Viento: {reg.get('viento', 0)} km/h")
-                
+                print(f"   🌧️  Lluvia: {reg.get('lluvia', 0)} mm")
+
                 alertas_locales = self._analizar_alertas(temp, reg.get('humedad', 0), reg.get('viento', 0), reg.get('lluvia', 0))
                 for alerta in alertas_locales: 
                     print(f"   {alerta}")
@@ -472,7 +485,7 @@ class InterfazPyClima:
             else:
                 print("❌ Opción no válida. Por favor, seleccione 1, 2 o 3.")
                 input("Presione Enter para intentarlo de nuevo...")
-    
+
     def mostrar_panel_alertas(self):
         """Panel de alertas activas con filtros y navegación avanzada (Fase D)"""
         while True:

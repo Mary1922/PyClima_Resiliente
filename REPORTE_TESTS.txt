@@ -125,7 +125,7 @@ RESULTADO: PASS - Todos los archivos y modulos correctos
  ESTADO FINAL
 ================================================================================
 
-PROGRAMA: PYCLIMA RESILIENTE v3.0
+PROGRAMA: PYCLIMA RESILIENTE v1.0
 ESTADO: LISTO PARA PRODUCCION
 CALIDAD: 100% FUNCIONAL
 COBERTURA: TODAS LAS FUNCIONALIDADES PROBADAS
