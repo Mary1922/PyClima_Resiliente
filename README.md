@@ -40,7 +40,7 @@ Detección automática de **5 tipos principales de riesgos**:
 - Nivel Alto: > 35°C
 
 #### 🔴 **Frío Extremo**
-- Nivel Crítico: > -2°C
+- Nivel Crítico: > -5°C
 - Nivel Alto: > 2°C
 
 #### 🔴 **Viento Peligroso**
@@ -217,3 +217,4 @@ REPORTE_TESTS.txt
 **Versión**: 1.0  
 **Fecha**: 16 de Abril de 2026  
 **Bootcamp**: AI4Inclusion - Los Guardianes del Dato
+**Presentación comercial del proyecto** : https://drive.google.com/drive/folders/18TSNjwbUrH0l5jyYwj_pYCfXOnVYkYUY?usp=drive_link
