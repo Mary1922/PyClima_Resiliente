@@ -343,7 +343,6 @@ if confirmar == 's':
    - 🌡️ Temperatura (usa reg.get('temp') O reg.get('temperatura'))
    - 💧 Humedad
    - 💨 Viento
-   - 🌧️ Lluvia
    - Alertas asociadas (recalculadas)
 ```
 

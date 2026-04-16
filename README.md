@@ -17,11 +17,13 @@ Aporta datos al Departamento de Resiliencia Urbana y Smart City del Ayuntamiento
 ## ✨ Características Principales ✨
 
 ### 1. **Interfaz Intuitiva**
+
 - Menú principal claro y navegable
 - Indicadores visuales para orientar al usuario
 - Mensajes de error comprensibles sin crashes
 
 ### 2. **Registro Robusto de Datos**
+
 - Captura validada de: Fecha, Zona, Temperatura, Humedad, Viento, Precipitación
 - Validación automática contra distritos oficiales de Madrid
 - Validación automática de rangos de vaidez de cada dato
@@ -31,27 +33,28 @@ Aporta datos al Departamento de Resiliencia Urbana y Smart City del Ayuntamiento
 
 ### 3. **Sistema de Alertas Inteligente** ⚠️
 
-Detección automática de **4 tipos principales de riesgos**:
+Detección automática de **5 tipos principales de riesgos**:
 
 #### 🔴 **Calor Extremo**
 - Nivel Crítico: > 45°C
-- Nivel Alto: > 40°C
+- Nivel Alto: > 35°C
+
+#### 🔴 **Frío Extremo**
+- Nivel Crítico: > -2°C
+- Nivel Alto: > 2°C
 
 #### 🔴 **Viento Peligroso**
-- Nivel Crítico: > 70 km/h
-- Nivel Alto: > 50 km/h
+- Nivel Alto: > 40 km/h
 
 #### 🟡 **Humedad Anómala**
-- Lluvia activa
-- Humedad muy alta (> 95%)
-- Humedad muy baja (< 20%)
+- Humedad muy baja < 15% 
 
-#### 🟡 **Precipitación**
-- Lluvia activa
-- Humedad muy alta (> 95%)
-- Humedad muy baja (< 20%)
+#### 🔴 **Precipitación**
+- Lluvia intensa > 20 mm 
+- Lluvia torrencial > 50 mm
 
 ### 4. **Consulta y Análisis**
+
 - Filtrado por zona/distrito/usuario
 - Visualización de histórico completo
 - Visualización de alertas
@@ -63,10 +66,12 @@ Detección automática de **4 tipos principales de riesgos**:
 python -m venv .venv
 o bien: 
 python3 -m venv .venv
+```
 
-### 2. Activar entorno 
+### 2. Activar entorno
 ``` bash
 source venv/bin/activate
+```
 
 En Windows PowerShell: 
 ``` bash
@@ -131,7 +136,6 @@ UMBRAL_TEMP_FRIO_NARANJA = 2.0      # °C
 UMBRAL_TEMP_FRIO_ROJA = -2.0      # °C
 UMBRAL_VIENTO_ALTO = 40.0     # km/h
 UMBRAL_HUMEDAD_BAJA = 15.0    # %
-UMBRAL_HUMEDAD_ALTA = 95.0    # %
 UMBRAL_LLUVIA_NARANJA = 20.0  # mm
 UMBRAL_LLUVIA_ROJA = 50.0 # mm
 ```
@@ -178,8 +182,8 @@ PyClima_Resiliente/
 - Integrar pasos que no corten el flujo en caso de error
 
 **DEV 3: Persistencia JSON**
-- Lectura/escritura
-- Validación de duplicados
+- Lectura/escritura base datos
+- Validación de datos y evitar duplicados
 - Nutrir bbdd
 
 **DEV 4: Interfaz + Alertas**
@@ -192,6 +196,10 @@ PyClima_Resiliente/
 ```bash
 # Test completo
 python test_completo.py
+```
+```bash
+# Resultado de los test 
+REPORTE_TESTS.txt
 ```
 
 ## 📝 Estado
